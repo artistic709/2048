@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 // SPDX-License-Identifier: MIT
 
 interface I2048GameSolver {
-    function solve(uint16[4][4] memory board) external returns (uint);
+    function solve(uint[4][4] memory board) external returns (uint);
     function owner() external view returns (address);
 }
 
@@ -29,9 +29,9 @@ contract Game {
         return uint(keccak256(abi.encodePacked(randomSeed))); 
     }
 
-    function addRandomNumber(uint16[4][4] memory board, uint seed) internal pure returns (uint16[4][4] memory) {
+    function addRandomNumber(uint[4][4] memory board, uint seed) internal pure returns (uint[4][4] memory) {
         unchecked {
-        uint16 size = 16;
+        uint size = 16;
         uint index = seed % size;
         while (board[index / 4][index % 4] != 0) {
             index = (index + 7) % size;
@@ -63,7 +63,7 @@ contract Game {
     }
 
     function _play(I2048GameSolver solver) internal returns (uint score) {
-        uint16[4][4] memory board;
+        uint[4][4] memory board;
         uint randomSeed = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty)));
         board = addRandomNumber(board, randomSeed);
         randomSeed = random(randomSeed);
@@ -180,7 +180,7 @@ contract exampleSolver is I2048GameSolver {
     constructor() {
         owner = msg.sender;
     }
-    function solve(uint16[4][4] memory) public returns (uint) {
+    function solve(uint[4][4] memory) public returns (uint) {
         unchecked {
         count++;
         return count % 4;
