@@ -25,22 +25,6 @@ contract Game {
         endTime = block.timestamp + duration;
     }
 
-    function random(uint randomSeed) internal pure returns (uint) {
-        return uint(keccak256(abi.encodePacked(randomSeed))); 
-    }
-
-    function addRandomNumber(uint[4][4] memory board, uint seed) internal pure returns (uint[4][4] memory) {
-        unchecked {
-        uint size = 16;
-        uint index = seed % size;
-        while (board[index / 4][index % 4] != 0) {
-            index = (index + 7) % size;
-        }
-        board[index / 4][index % 4] = seed % 10 == 0 ? 4 : 2; // 10% chance of 4
-        return board;
-        }
-    }
-
     function play(I2048GameSolver solver) external payable returns (uint score) {
         require(msg.sender == tx.origin, "only EOA allowed");
         require(msg.value >= gasleft() * tx.gasprice, "not enough ether sent");
@@ -65,10 +49,15 @@ contract Game {
     function _play(I2048GameSolver solver) internal returns (uint score) {
         uint[4][4] memory board;
         uint randomSeed = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty)));
-        board = addRandomNumber(board, randomSeed);
-        randomSeed = random(randomSeed);
-        board = addRandomNumber(board, randomSeed);
         unchecked {
+        {
+            uint size = 16;
+            uint index = randomSeed % size;
+            board[index / 4][index % 4] = randomSeed % 10 == 0 ? 4 : 2; // 10% chance of 4
+            randomSeed = uint(keccak256(abi.encodePacked(randomSeed)));
+            index = randomSeed % size;
+            board[index / 4][index % 4] = randomSeed % 10 == 0 ? 4 : 2; // 10% chance of 4
+        }
         while(true) {
             uint move = solver.solve(board);
             bool noMove = true;
@@ -164,8 +153,13 @@ contract Game {
             if(noMove) {
                 return(score); // game over
             } else {
-                randomSeed = random(randomSeed);
-                board = addRandomNumber(board, randomSeed);
+                randomSeed = uint(keccak256(abi.encodePacked(randomSeed)));
+                uint size = 16;
+                uint index = randomSeed % size;
+                while (board[index / 4][index % 4] != 0) {
+                    index = (index + 7) % size;
+                }
+                board[index / 4][index % 4] = randomSeed % 10 == 0 ? 4 : 2; // 10% chance of 4
             }
           
         }
